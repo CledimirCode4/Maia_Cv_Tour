@@ -6,5 +6,4 @@ urlpatterns = [
     path('success/', success, name="success"),
     path('cancel/', cancel, name="cancel"),
     path('webhook/', stripe_webhook, name="stripe_webhook"),
-
 ]

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import environ
 import os
+from dotenv import load_dotenv
 
 
 
@@ -29,7 +30,18 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # Configura as chaves do Stripe com valores padrão para evitar erros
 STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY')
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY')
-STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET')
+
+
+
+# Carregar variáveis do .env
+load_dotenv()
+
+# Configuração do PayPal
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
+PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
+PAYPAL_MODE = os.getenv("PAYPAL_MODE", "sandbox")  # Define "sandbox" como padrão
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -53,7 +65,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'stripe_payment',
-    'initial_page'
+    'initial_page',
+    'paypal_payment',
 ]
 
 MIDDLEWARE = [

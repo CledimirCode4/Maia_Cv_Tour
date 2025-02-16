@@ -21,4 +21,5 @@ urlpatterns = [
     path('',include('initial_page.urls')),
     path('admin/', admin.site.urls),
     path('stripe_payment/', include('stripe_payment.urls')),
+    path('paypal_payment/', include('paypal_payment.urls')),
 ]

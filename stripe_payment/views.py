@@ -10,9 +10,10 @@ from .models import Payment  # Importando o modelo
 # Configuração do logger
 logger = logging.getLogger(__name__)
 
-# Chave secreta do Stripe
+# Configuração da chave secreta do Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+# 1️⃣ CRIAÇÃO DA SESSÃO DE CHECKOUT
 @csrf_exempt
 def create_checkout_session(request):
     if request.method == "POST":
@@ -23,6 +24,7 @@ def create_checkout_session(request):
             amount_usd = round(amount_cve * exchange_rate * 100)  # Converter para centavos
             currency = 'usd'
 
+            # Criar a sessão de pagamento no Stripe
             session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
@@ -57,18 +59,21 @@ def create_checkout_session(request):
             logger.error(f"Erro ao criar sessão de checkout: {e}")
             return JsonResponse({'error': str(e)}, status=500)
 
-
+# 2️⃣ REDIRECIONAMENTO APÓS O PAGAMENTO
 def success(request):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 def cancel(request):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
+# 3️⃣ WEBHOOK PARA ATUALIZAR STATUS DO PAGAMENTO
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
     sig_header = request.headers.get('Stripe-Signature')
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+
+    logger.info(f"Recebendo webhook do Stripe: {payload.decode('utf-8')}")
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
@@ -79,6 +84,7 @@ def stripe_webhook(request):
         logger.warning("Falha na verificação da assinatura do webhook.")
         return HttpResponse(status=400)
 
+    # Processar o evento recebido do Stripe
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         session_id = session.get("id")
@@ -92,3 +98,5 @@ def stripe_webhook(request):
             logger.error(f"Pagamento {session_id} não encontrado no banco de dados!")
 
     return HttpResponse(status=200)
+
+
